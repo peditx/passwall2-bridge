@@ -1,39 +1,30 @@
-name: Translate Chinese to English
+import os
+import re
+from googletrans import Translator
 
-on:
-  workflow_dispatch:
-  push:
-    branches:
-      - main
+target_folder = "luci-app-passwall2/root/usr/share/passwall2"
 
-jobs:
-  translate:
-    runs-on: ubuntu-latest
+translator = Translator()
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+chinese_pattern = re.compile(r'[\u4e00-\u9fff]+')
 
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: 3.x
+for root, _, files in os.walk(target_folder):
+    for file_name in files:
+        file_path = os.path.join(root, file_name)
+        if file_path.endswith((".txt", ".log", ".json", ".lua", ".sh")):
+            with open(file_path, "r", encoding="utf-8") as f:
+                content = f.read()
+            
+            def translate_match(match):
+                try:
+                    return translator.translate(match.group(0), src="zh-cn", dest="en").text
+                except Exception as e:
+                    print(f"Error translating text: {match.group(0)}. Skipping...")
+                    return match.group(0)
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install googletrans==4.0.0-rc1
+            translated_content = chinese_pattern.sub(translate_match, content)
 
-    - name: Find and Translate Files
-      run: |
-        python translate_files.py
+            with open(file_path, "w", encoding="utf-8") as f:
+                f.write(translated_content)
 
-    - name: Commit and Push Changes
-      run: |
-        git config --global user.name "GitHub Actions"
-        git config --global user.email "actions@github.com"
-        git add .
-        git commit -m "Translate Chinese content to English"
-        git push
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+print("Translation completed.")
