@@ -1,7 +1,6 @@
 name: Sync with Upstream
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
@@ -34,11 +33,11 @@ jobs:
           ./translate_files.py \
           ./.github/workflows/translate.yml || echo "Nothing to stash."
 
-        echo "Resetting local branch to match upstream/main..."
+        echo "Resetting local branch to match upstream/main (force reset)..."
         git checkout main
         git reset --hard upstream/main || echo "Failed to reset branch."
 
-        echo "Ensuring branch is up-to-date..."
+        echo "Ensuring branch is up-to-date (force rebase)..."
         git pull upstream main --rebase --allow-unrelated-histories || echo "Rebase failed."
 
         echo "Applying stashed changes..."
@@ -88,4 +87,4 @@ jobs:
         git remote set-url origin https://peditx:${{ secrets.GH_TOKEN }}@github.com/peditx/openwrt-passwall2.git
         git add ./translate_files.py .github/workflows/translate.yml luci-app-passwall2/luasrc/view/passwall2/global/status.htm
         git commit -m "Update translate files and status.htm"
-        git push origin main || echo "Push failed."
+        git push origin main --force || echo "Push failed."
