@@ -1,6 +1,7 @@
 name: Sync with Upstream
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
