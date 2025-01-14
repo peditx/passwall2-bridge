@@ -17,6 +17,7 @@ for root, _, files in os.walk(target_folder):
             
             def translate_match(match):
                 try:
+                    time.sleep(1)
                     return translator.translate(match.group(0), src="zh-cn", dest="en").text
                 except Exception as e:
                     print(f"Error translating text: {match.group(0)}. Skipping...")
